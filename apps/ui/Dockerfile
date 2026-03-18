@@ -20,14 +20,21 @@ RUN npm run build --workspace=apps/ui && ls -la apps/ui/dist/ | head -10
 # Runtime stage
 FROM nginx:alpine AS runtime
 
+# Install gettext for envsubst
+RUN apk add --no-cache gettext
+
 # Copy built application
 COPY --from=builder /app/apps/ui/dist /usr/share/nginx/html
 
-# Copy nginx configuration
-COPY apps/ui/nginx.conf /etc/nginx/nginx.conf
+# Copy nginx configuration template
+COPY apps/ui/nginx.conf.template /etc/nginx/templates/default.conf.template
+
+# Copy startup script
+COPY apps/ui/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 # Expose port
 EXPOSE 80
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start nginx with environment variable validation
+CMD ["/docker-entrypoint.sh"]

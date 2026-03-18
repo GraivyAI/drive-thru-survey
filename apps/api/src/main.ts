@@ -1,4 +1,3 @@
-// Drive-Thru Survey API
 import { config } from 'dotenv';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
