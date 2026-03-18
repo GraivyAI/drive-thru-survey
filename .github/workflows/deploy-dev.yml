@@ -1,4 +1,4 @@
-name: Deploy Dev
+name: Deploy Survey Dev
 
 on:
   push:
@@ -9,9 +9,9 @@ on:
       - 'tsconfig*.json'
       - '.github/workflows/deploy-dev.yml'
 
-concurrency:
-  group: deploy-dev
-  cancel-in-progress: false
+env:
+  RESOURCE_GROUP: servthru-dev-erie-rg
+  ACR_LOGIN_SERVER: graivyacr.azurecr.io
 
 jobs:
   changes:
@@ -50,16 +50,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Login to ACR
-        run: az acr login --name ${{ vars.ACR_NAME }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push API image
         uses: docker/build-push-action@v5
@@ -68,14 +67,14 @@ jobs:
           file: apps/api/Dockerfile
           push: true
           tags: |
-            ${{ vars.ACR_NAME }}.azurecr.io/survey-api:${{ github.sha }}
-            ${{ vars.ACR_NAME }}.azurecr.io/survey-api:latest
+            ${{ env.ACR_LOGIN_SERVER }}/survey-api:${{ github.sha }}
+            ${{ env.ACR_LOGIN_SERVER }}/survey-api:latest
           cache-from: type=gha,scope=survey-api
           cache-to: type=gha,mode=max,scope=survey-api
 
       - name: Set output
         id: meta
-        run: echo "image=${{ vars.ACR_NAME }}.azurecr.io/survey-api:${{ github.sha }}" >> $GITHUB_OUTPUT
+        run: echo "image=${{ env.ACR_LOGIN_SERVER }}/survey-api:${{ github.sha }}" >> $GITHUB_OUTPUT
 
   build-ui:
     name: Build UI
@@ -88,16 +87,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Login to ACR
-        run: az acr login --name ${{ vars.ACR_NAME }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push UI image
         uses: docker/build-push-action@v5
@@ -106,14 +104,14 @@ jobs:
           file: apps/ui/Dockerfile
           push: true
           tags: |
-            ${{ vars.ACR_NAME }}.azurecr.io/survey-ui:${{ github.sha }}
-            ${{ vars.ACR_NAME }}.azurecr.io/survey-ui:latest
+            ${{ env.ACR_LOGIN_SERVER }}/survey-ui:${{ github.sha }}
+            ${{ env.ACR_LOGIN_SERVER }}/survey-ui:latest
           cache-from: type=gha,scope=survey-ui
           cache-to: type=gha,mode=max,scope=survey-ui
 
       - name: Set output
         id: meta
-        run: echo "image=${{ vars.ACR_NAME }}.azurecr.io/survey-ui:${{ github.sha }}" >> $GITHUB_OUTPUT
+        run: echo "image=${{ env.ACR_LOGIN_SERVER }}/survey-ui:${{ github.sha }}" >> $GITHUB_OUTPUT
 
   deploy-api:
     name: Deploy API
@@ -121,7 +119,7 @@ jobs:
     needs: [changes, build-api]
     if: needs.changes.outputs.api == 'true'
     steps:
-      - name: Azure Login
+      - name: Log in to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
@@ -130,7 +128,7 @@ jobs:
         run: |
           az containerapp update \
             --name survey-api-dev \
-            --resource-group erie \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
             --image ${{ needs.build-api.outputs.image }}
 
   deploy-ui:
@@ -139,7 +137,7 @@ jobs:
     needs: [changes, build-ui]
     if: needs.changes.outputs.ui == 'true'
     steps:
-      - name: Azure Login
+      - name: Log in to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
@@ -148,7 +146,7 @@ jobs:
         run: |
           az containerapp update \
             --name survey-ui-dev \
-            --resource-group erie \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
             --image ${{ needs.build-ui.outputs.image }}
 
   health-check:
@@ -157,8 +155,8 @@ jobs:
     needs: [changes, deploy-api, deploy-ui]
     if: |
       always() && 
-      needs.deploy-api.result == 'success' && 
-      needs.deploy-ui.result == 'success'
+      (needs.deploy-api.result == 'success' || needs.deploy-api.result == 'skipped') &&
+      (needs.deploy-ui.result == 'success' || needs.deploy-ui.result == 'skipped')
     steps:
       - name: Poll health endpoints
         run: |
@@ -167,13 +165,12 @@ jobs:
           WAIT_SECONDS=10
           
           for i in $(seq 1 $MAX_ATTEMPTS); do
-            API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.SURVEY_URL }}/api/health" || echo "000")
-            UI_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.SURVEY_URL }}/" || echo "000")
+            API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://survey-api-dev.greenrock-05372d50.eastus2.azurecontainerapps.io/api/health" || echo "000")
+            UI_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://survey-ui-dev.greenrock-05372d50.eastus2.azurecontainerapps.io/" || echo "000")
             
             if [ "$API_STATUS" = "200" ] && [ "$UI_STATUS" = "200" ]; then
               echo "✅ Survey app health check passed"
-              echo "API: $API_STATUS, UI: $UI_STATUS"
-              echo "Available at: ${{ vars.SURVEY_URL }}"
+              echo "Available at: https://survey-ui-dev.greenrock-05372d50.eastus2.azurecontainerapps.io"
               exit 0
             fi
             
@@ -185,38 +182,5 @@ jobs:
             fi
           done
           
-          echo "❌ Health check failed after $MAX_ATTEMPTS attempts"
+          echo "❌ Health check failed"
           exit 1
-
-  deploy-complete:
-    name: Deploy Complete
-    runs-on: ubuntu-latest
-    needs: [changes, build-api, build-ui, deploy-api, deploy-ui, health-check]
-    if: always()
-    steps:
-      - name: Check deployment result
-        run: |
-          API_CHANGES="${{ needs.changes.outputs.api }}"
-          UI_CHANGES="${{ needs.changes.outputs.ui }}"
-          API_RESULT="${{ needs.deploy-api.result }}"
-          UI_RESULT="${{ needs.deploy-ui.result }}"
-          HEALTH_RESULT="${{ needs.health-check.result }}"
-          
-          echo "=== Survey App Deployment Results ==="
-          echo "API changes: $API_CHANGES, result: $API_RESULT"
-          echo "UI changes: $UI_CHANGES, result: $UI_RESULT"
-          echo "Health check: $HEALTH_RESULT"
-          
-          if [ "$API_RESULT" = "failure" ] || [ "$UI_RESULT" = "failure" ]; then
-            echo "❌ Deployment failed"
-            exit 1
-          elif [ "$HEALTH_RESULT" = "success" ]; then
-            echo "✅ Survey app deployed successfully"
-            exit 0
-          elif [ "$API_CHANGES" != "true" ] && [ "$UI_CHANGES" != "true" ]; then
-            echo "⏭️ No changes - deployment skipped"
-            exit 0
-          else
-            echo "⚠️ Deployment completed but health check failed"
-            exit 1
-          fi
