@@ -162,7 +162,7 @@ jobs:
             --name survey-ui-dev \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --image ${{ env.ACR_LOGIN_SERVER }}/survey-ui:${{ github.sha }} \
-            --set-env-vars API_UPSTREAM_BASE_URL=http://survey-api-dev:3010/api
+            --set-env-vars API_UPSTREAM_BASE_URL=http://survey-api-dev.internal.greenrock-05372d50.eastus2.azurecontainerapps.io:3010/api
 
   health-check:
     name: Health Check
@@ -182,16 +182,18 @@ jobs:
           WAIT_SECONDS=10
           
           for i in $(seq 1 $MAX_ATTEMPTS); do
-            API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://survey-api-dev.greenrock-05372d50.eastus2.azurecontainerapps.io/api/health" || echo "000")
+            # Test UI (which will proxy to internal API)
             UI_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://survey-ui-dev.greenrock-05372d50.eastus2.azurecontainerapps.io/" || echo "000")
+            # Test API through UI proxy
+            API_VIA_UI_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://survey-ui-dev.greenrock-05372d50.eastus2.azurecontainerapps.io/api/health" || echo "000")
             
-            if [ "$API_STATUS" = "200" ] && [ "$UI_STATUS" = "200" ]; then
+            if [ "$UI_STATUS" = "200" ] && [ "$API_VIA_UI_STATUS" = "200" ]; then
               echo "✅ Survey app health check passed"
               echo "Available at: https://survey-ui-dev.greenrock-05372d50.eastus2.azurecontainerapps.io"
               exit 0
             fi
             
-            echo "Health check attempt $i/$MAX_ATTEMPTS: API $API_STATUS, UI $UI_STATUS"
+            echo "Health check attempt $i/$MAX_ATTEMPTS: UI $UI_STATUS, API (via UI) $API_VIA_UI_STATUS"
             
             if [ $i -lt $MAX_ATTEMPTS ]; then
               echo "Waiting ${WAIT_SECONDS}s..."
