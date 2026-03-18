@@ -161,8 +161,7 @@ jobs:
           az containerapp update \
             --name survey-ui-dev \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --image ${{ env.ACR_LOGIN_SERVER }}/survey-ui:${{ github.sha }} \
-            --set-env-vars API_UPSTREAM_BASE_URL=http://survey-api-dev.internal.greenrock-05372d50.eastus2.azurecontainerapps.io:3010/api
+            --image ${{ env.ACR_LOGIN_SERVER }}/survey-ui:${{ github.sha }}
 
   health-check:
     name: Health Check
