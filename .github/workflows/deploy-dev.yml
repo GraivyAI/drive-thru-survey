@@ -121,7 +121,7 @@ jobs:
     name: Deploy API
     runs-on: ubuntu-latest
     needs: [changes, build-api]
-    if: needs.changes.outputs.api == 'true'
+    if: needs.changes.outputs.api == 'true' && needs.build-api.result == 'success'
     steps:
       - name: Log in to Azure
         uses: azure/login@v2
@@ -150,7 +150,7 @@ jobs:
     name: Deploy UI
     runs-on: ubuntu-latest
     needs: [changes, build-ui]
-    if: needs.changes.outputs.ui == 'true'
+    if: needs.changes.outputs.ui == 'true' && needs.build-ui.result == 'success'
     steps:
       - name: Log in to Azure
         uses: azure/login@v2
@@ -182,7 +182,9 @@ jobs:
     if: |
       always() && 
       (needs.deploy-api.result == 'success' || needs.deploy-api.result == 'skipped') &&
-      (needs.deploy-ui.result == 'success' || needs.deploy-ui.result == 'skipped')
+      (needs.deploy-ui.result == 'success' || needs.deploy-ui.result == 'skipped') &&
+      needs.deploy-api.result != 'failure' &&
+      needs.deploy-ui.result != 'failure'
     steps:
       - name: Poll health endpoints
         run: |
