@@ -66,6 +66,22 @@ export class SurveyService {
     return result.rows[0];
   }
 
+  async unskip(params: {
+    orderId: string;
+    locationId: string;
+  }) {
+    const result = await this.sql.query(
+      `DELETE FROM survey_responses
+       WHERE order_id = $1 AND location_id = $2 AND status = 'SKIPPED'
+       RETURNING id`,
+      [params.orderId, params.locationId],
+    );
+    if (result.rowCount === 0) {
+      return { deleted: false };
+    }
+    return { deleted: true, id: result.rows[0].id };
+  }
+
   async getByOrderId(orderId: string, locationId: string) {
     const result = await this.sql.query(
       `SELECT id, order_id, satisfaction_rating, easy_to_understand, would_use_again, status, created_at

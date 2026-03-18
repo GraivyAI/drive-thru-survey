@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useOrderDetail } from './useOrderDetail';
 import { useSubmitSurvey } from './useSubmitSurvey';
 import { useSkipSurvey } from './useSkipSurvey';
+import { useUnskipSurvey } from './useUnskipSurvey';
 import { useExistingResponse } from './useExistingResponse';
 import { OrderDetail } from './OrderDetail';
 import { SatisfactionRating } from './SatisfactionRating';
@@ -30,6 +31,7 @@ export function SurveyPage() {
   const { data: existing, isLoading: existingLoading } = useExistingResponse(orderId!);
   const submitMutation = useSubmitSurvey();
   const skipMutation = useSkipSurvey();
+  const unskipMutation = useUnskipSurvey();
 
   const [satisfaction, setSatisfaction] = useState<number | null>(null);
   const [easyToUnderstand, setEasyToUnderstand] = useState<string | null>(null);
@@ -86,6 +88,18 @@ export function SurveyPage() {
       navigate('/orders', { replace: true });
     } catch {
       toast.error("Couldn't skip — try again");
+    }
+  };
+
+  const handleUnskip = async () => {
+    if (!orderId) return;
+
+    try {
+      await unskipMutation.mutateAsync(orderId);
+      toast.success('Order un-skipped');
+      navigate('/orders', { replace: true });
+    } catch {
+      toast.error("Couldn't un-skip — try again");
     }
   };
 
@@ -217,16 +231,16 @@ export function SurveyPage() {
         )}
 
         <button
-          onClick={handleSkip}
-          disabled={skipMutation.isPending}
+          onClick={isSkipped ? handleUnskip : handleSkip}
+          disabled={skipMutation.isPending || unskipMutation.isPending}
           className="w-full py-3 font-medium rounded-2xl text-[13px] tracking-tight border border-line text-txt-muted
                      hover:text-txt-secondary hover:border-txt-muted transition-all active:scale-[0.98]"
           style={{ backgroundColor: 'var(--bg-input)' }}
         >
-          {skipMutation.isPending ? (
+          {(skipMutation.isPending || unskipMutation.isPending) ? (
             <span className="inline-flex items-center gap-2">
               <span className="w-3 h-3 border-2 border-current/20 border-t-current rounded-full animate-spin" />
-              Skipping
+              {isSkipped ? 'Un-skipping' : 'Skipping'}
             </span>
           ) : isSkipped ? (
             'Un-skip Order'

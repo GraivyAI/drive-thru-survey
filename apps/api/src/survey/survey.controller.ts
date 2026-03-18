@@ -48,6 +48,19 @@ export class SurveyController {
     });
   }
 
+  @Post('unskip')
+  @ApiOperation({ summary: 'Un-skip a previously skipped order' })
+  @ApiResponse({ status: 200, description: 'Skip removed, order returned to unsurveyed' })
+  async unskip(
+    @CurrentLocation() loc: JwtPayload,
+    @Body() body: { orderId: string },
+  ) {
+    return this.surveyService.unskip({
+      orderId: body.orderId,
+      locationId: loc.locationId,
+    });
+  }
+
   @Get('report')
   @ApiOperation({ summary: 'Get survey report with summary and responses' })
   async report(
