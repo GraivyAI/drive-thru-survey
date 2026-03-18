@@ -1,4 +1,4 @@
-# Build stage
+# Build stage for survey API
 FROM node:20-alpine AS builder
 
 WORKDIR /app
