@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useOrderDetail } from './useOrderDetail';
 import { useSubmitSurvey } from './useSubmitSurvey';
@@ -32,6 +33,7 @@ export function SurveyPage() {
   const submitMutation = useSubmitSurvey();
   const skipMutation = useSkipSurvey();
   const unskipMutation = useUnskipSurvey();
+  const queryClient = useQueryClient();
 
   const [satisfaction, setSatisfaction] = useState<number | null>(null);
   const [easyToUnderstand, setEasyToUnderstand] = useState<string | null>(null);
@@ -61,6 +63,12 @@ export function SurveyPage() {
   
   const isDirty = satisfaction !== null || easyToUnderstand !== null || wouldUseAgain !== null;
 
+  const refreshAndNavigate = async (message: string) => {
+    toast.success(message);
+    await queryClient.refetchQueries({ queryKey: ['orders'], type: 'all' });
+    navigate('/orders', { replace: true });
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit || !orderId) return;
 
@@ -71,8 +79,7 @@ export function SurveyPage() {
         easyToUnderstand,
         wouldUseAgain,
       });
-      toast.success(isEditing ? 'Survey updated' : 'Survey saved');
-      navigate('/orders', { replace: true });
+      await refreshAndNavigate(isEditing ? 'Survey updated' : 'Survey saved');
     } catch {
       toast.error("Couldn't save — check your connection and try again");
     }
@@ -88,8 +95,7 @@ export function SurveyPage() {
 
     try {
       await skipMutation.mutateAsync(orderId);
-      toast.success('Order skipped');
-      navigate('/orders', { replace: true });
+      await refreshAndNavigate('Order skipped');
     } catch {
       toast.error("Couldn't skip — try again");
     }
@@ -100,8 +106,7 @@ export function SurveyPage() {
 
     try {
       await unskipMutation.mutateAsync(orderId);
-      toast.success('Order un-skipped');
-      navigate('/orders', { replace: true });
+      await refreshAndNavigate('Order un-skipped');
     } catch {
       toast.error("Couldn't un-skip — try again");
     }
@@ -112,8 +117,7 @@ export function SurveyPage() {
     
     try {
       await skipMutation.mutateAsync(orderId);
-      toast.success('Order skipped');
-      navigate('/orders', { replace: true });
+      await refreshAndNavigate('Order skipped');
     } catch {
       toast.error("Couldn't skip — try again");
     }
