@@ -3,35 +3,34 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files and tsconfig
+# Copy workspace manifests first for layer caching
+COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
 COPY tsconfig.base.json ./
 
-# Install dependencies
-WORKDIR /app/apps/api
+# Install workspace dependencies from monorepo root
 RUN npm ci
 
 # Copy source code
-WORKDIR /app
 COPY apps/api/ ./apps/api/
 
 # Build the application
-WORKDIR /app/apps/api
-RUN npx nest build && ls -la dist/ | head -10
+RUN npm run build --workspace=apps/api && ls -la apps/api/dist/ | head -10
 
 # Runtime stage
 FROM node:20-alpine AS runtime
 
 WORKDIR /app
 
-# Copy package files
-COPY apps/api/package*.json ./
+# Copy workspace manifests
+COPY package*.json ./
+COPY apps/api/package*.json ./apps/api/
 
-# Install production dependencies only
+# Install production dependencies
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy built application from builder stage
-COPY --from=builder /app/apps/api/dist ./dist
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
 
 # Expose port
 EXPOSE 3010
@@ -41,4 +40,5 @@ ENV NODE_ENV=production
 ENV PORT=3010
 
 # Run the application
+WORKDIR /app/apps/api
 CMD ["node", "dist/main"]

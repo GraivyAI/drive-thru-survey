@@ -3,21 +3,19 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files and configs
+# Copy workspace manifests first for layer caching
+COPY package*.json ./
 COPY apps/ui/package*.json ./apps/ui/
 COPY tsconfig.base.json ./
 
-# Install dependencies
-WORKDIR /app/apps/ui
+# Install workspace dependencies from monorepo root
 RUN npm ci
 
 # Copy source code
-WORKDIR /app
 COPY apps/ui/ ./apps/ui/
 
 # Build the application
-WORKDIR /app/apps/ui
-RUN npm run build && ls -la dist/ | head -10
+RUN npm run build --workspace=apps/ui && ls -la apps/ui/dist/ | head -10
 
 # Runtime stage
 FROM nginx:alpine AS runtime
