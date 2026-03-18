@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'apps/**'
+      - 'package*.json'
+      - 'tsconfig*.json'
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint API
+        run: npm run lint --workspace=apps/api
+
+      - name: Typecheck API
+        run: npm run typecheck --workspace=apps/api
+
+      - name: Lint UI
+        run: npm run lint --workspace=apps/ui
+
+      - name: Typecheck UI
+        run: npm run typecheck --workspace=apps/ui

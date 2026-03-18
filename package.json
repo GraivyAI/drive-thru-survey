@@ -1,0 +1,16 @@
+{
+  "name": "drive-thru-survey",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Post-order AI drive-thru pilot survey",
+  "scripts": {
+    "lint": "npm run lint --workspace=apps/api && npm run lint --workspace=apps/ui",
+    "typecheck": "npm run typecheck --workspace=apps/api && npm run typecheck --workspace=apps/ui"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
+  "devDependencies": {
+    "@types/pg": "^8.18.0"
+  }
+}
