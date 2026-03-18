@@ -41,6 +41,10 @@ export function SurveyPage() {
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [orderId]);
+
+  useEffect(() => {
     if (existing && !prefilled) {
       if (existing.status === 'COMPLETED') {
         setSatisfaction(existing.satisfaction_rating);
