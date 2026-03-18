@@ -48,8 +48,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.api == 'true'
-    outputs:
-      image: ${{ steps.meta.outputs.image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -76,17 +74,11 @@ jobs:
           cache-from: type=gha,scope=survey-api
           cache-to: type=gha,mode=max,scope=survey-api
 
-      - name: Set output
-        id: meta
-        run: echo "image=${{ env.ACR_LOGIN_SERVER }}/survey-api:${{ github.sha }}" >> $GITHUB_OUTPUT
-
   build-ui:
     name: Build UI
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.ui == 'true'
-    outputs:
-      image: ${{ steps.meta.outputs.image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -112,10 +104,6 @@ jobs:
             ${{ env.ACR_LOGIN_SERVER }}/survey-ui:latest
           cache-from: type=gha,scope=survey-ui
           cache-to: type=gha,mode=max,scope=survey-ui
-
-      - name: Set output
-        id: meta
-        run: echo "image=${{ env.ACR_LOGIN_SERVER }}/survey-ui:${{ github.sha }}" >> $GITHUB_OUTPUT
 
   deploy-api:
     name: Deploy API
@@ -144,7 +132,7 @@ jobs:
           az containerapp update \
             --name survey-api-dev \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --image ${{ needs.build-api.outputs.image }}
+            --image ${{ env.ACR_LOGIN_SERVER }}/survey-api:${{ github.sha }}
 
   deploy-ui:
     name: Deploy UI
@@ -173,7 +161,7 @@ jobs:
           az containerapp update \
             --name survey-ui-dev \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --image ${{ needs.build-ui.outputs.image }}
+            --image ${{ env.ACR_LOGIN_SERVER }}/survey-ui:${{ github.sha }}
 
   health-check:
     name: Health Check
