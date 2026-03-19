@@ -12,7 +12,7 @@ export function OrdersPage() {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-surface-page pb-20">
+    <div className="min-h-screen bg-surface-page pb-20 overflow-x-hidden">
       <AppHeader
         subtitle={`${today} \u00B7 ${surveyedCount} of ${totalCount} surveyed`}
         lastUpdated={dataUpdatedAt ? new Date(dataUpdatedAt) : null}

@@ -35,6 +35,11 @@
     --graivy-btn-text: #0e1a14;
   }
 
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;

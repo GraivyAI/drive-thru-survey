@@ -28,15 +28,6 @@ export function LoginPage() {
     [code],
   );
 
-  const handleKeyDown = useCallback(
-    (index: number, e: React.KeyboardEvent) => {
-      if (e.key === 'Backspace' && !code[index] && index > 0) {
-        inputRefs.current[index - 1]?.focus();
-      }
-    },
-    [code],
-  );
-
   const handleSubmit = async () => {
     const shortCode = code.join('');
     if (shortCode.length !== 4) return;
@@ -57,12 +48,24 @@ export function LoginPage() {
     }
   };
 
+  const handleKeyDown = useCallback(
+    (index: number, e: React.KeyboardEvent) => {
+      if (e.key === 'Backspace' && !code[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      } else if (e.key === 'Enter' && code.every((c) => c.length === 1) && !loading) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    },
+    [code, loading, handleSubmit],
+  );
+
   const filled = code.every((c) => c.length === 1);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6"
-      style={{ backgroundColor: 'var(--bg-page)' }}>
-      <div className="w-full max-w-[280px] text-center">
+    <div className="flex flex-col items-center justify-center px-6"
+      style={{ backgroundColor: 'var(--bg-page)', minHeight: '100dvh' }}>
+      <div className="w-full max-w-[280px] text-center -mt-12">
         <div className="flex justify-center mb-4">
           <GraivyLogo className="h-8 w-auto" />
         </div>
@@ -95,7 +98,7 @@ export function LoginPage() {
                 e.target.style.borderColor = 'var(--border)';
                 e.target.style.boxShadow = 'none';
               }}
-              className="w-[56px] h-[64px] text-center text-xl font-semibold border rounded-2xl transition-all"
+              className="w-14 h-16 min-w-0 text-center text-xl font-semibold border rounded-2xl transition-all"
               style={{
                 backgroundColor: 'var(--bg-input)',
                 color: 'var(--text-primary)',
