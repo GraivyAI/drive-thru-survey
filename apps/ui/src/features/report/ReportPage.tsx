@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Download, Star, Minus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Download, Star, Minus, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { AppHeader } from '@/components/AppHeader';
 import { BottomNav } from '@/components/BottomNav';
@@ -43,6 +44,7 @@ const WUA_LABELS: Record<string, string> = {
 
 export function ReportPage() {
   const token = useAuthStore((s) => s.token);
+  const navigate = useNavigate();
   const [preset, setPreset] = useState(0);
 
   const today = toDateStr(0);
@@ -137,16 +139,37 @@ export function ReportPage() {
             {summary.totalCompleted > 0 && (
               <>
                 <div className="bg-surface-card rounded-xl border border-line p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-medium text-txt-primary">Average Satisfaction</p>
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm font-medium text-txt-primary">Satisfaction Rating</p>
                     <div className="text-right">
                       <p className="font-bold text-txt-primary">
-                        {summary.avgSatisfaction?.toFixed(1) || '—'} / 5
+                        {summary.avgSatisfaction?.toFixed(1) || '—'} / 5 avg
                       </p>
-                      <div className="flex gap-0.5 mt-0.5">
+                      <div className="flex gap-0.5 mt-0.5 justify-end">
                         {renderStars(Math.round(summary.avgSatisfaction || 0))}
                       </div>
                     </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    {([5, 4, 3, 2, 1] as const).map((rating) => {
+                      const count = summary.satisfactionDistribution[rating] ?? 0;
+                      const total = summary.totalCompleted;
+                      const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                      const color = rating >= 4 ? 'bg-emerald-500' : rating === 3 ? 'bg-amber-400' : 'bg-red-400';
+                      return (
+                        <div key={rating} className="flex items-center gap-2">
+                          <div className="flex gap-0.5 w-20 shrink-0">
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <Star key={i} className={`h-3 w-3 ${i < rating ? 'fill-amber-400 text-amber-400' : 'text-txt-faint'}`} />
+                            ))}
+                          </div>
+                          <div className="flex-1 h-4 bg-surface-input rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-xs font-medium text-txt-secondary w-8 text-right">{count}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -180,7 +203,12 @@ export function ReportPage() {
             </h3>
             <div className="space-y-2">
               {responses.map((r) => (
-                <div key={r.id} className="bg-surface-card rounded-xl border border-line p-3">
+                <button
+                  key={r.id}
+                  onClick={() => navigate(`/report/response/${r.orderId}`)}
+                  className="w-full bg-surface-card rounded-xl border border-line p-3 text-left
+                             hover:border-txt-muted active:scale-[0.99] transition-all"
+                >
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-medium text-txt-primary text-sm">
                       {r.orderNumber || '—'} &middot; {formatTime(r.orderTime)}
@@ -190,6 +218,7 @@ export function ReportPage() {
                       {r.status === 'SKIPPED' && (
                         <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider">Skipped</span>
                       )}
+                      <ChevronRight className="h-3.5 w-3.5 text-txt-faint" />
                     </div>
                   </div>
                   {r.status === 'COMPLETED' && (
@@ -199,7 +228,7 @@ export function ReportPage() {
                       <span className="text-txt-secondary">{WUA_LABELS[r.wouldUseAgain || ''] || r.wouldUseAgain}</span>
                     </div>
                   )}
-                </div>
+                </button>
               ))}
             </div>
           </div>

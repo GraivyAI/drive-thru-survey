@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { RefreshCw, Inbox } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
 import { BottomNav } from '@/components/BottomNav';
@@ -5,6 +6,9 @@ import { useOrders } from './useOrders';
 import { OrderCard } from './OrderCard';
 
 export function OrdersPage() {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
   const { data: orders, isLoading, isError, refetch, isFetching, dataUpdatedAt, newOrderIds } = useOrders();
 
   const surveyedCount = orders?.filter((o) => o.surveyed).length ?? 0;

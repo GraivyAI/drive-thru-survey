@@ -6,6 +6,7 @@ import { LoginPage } from '@/features/auth/LoginPage';
 import { OrdersPage } from '@/features/orders/OrdersPage';
 import { SurveyPage } from '@/features/survey/SurveyPage';
 import { ReportPage } from '@/features/report/ReportPage';
+import { ResponseDetailPage } from '@/features/report/ResponseDetailPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,10 +48,18 @@ export function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/report/response/:orderId"
+            element={
+              <ProtectedRoute>
+                <ResponseDetailPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/orders" replace />} />
         </Routes>
       </BrowserRouter>
-      <Toaster position="top-center" richColors />
+      <Toaster position="bottom-center" richColors offset={80} />
     </QueryClientProvider>
   );
 }
