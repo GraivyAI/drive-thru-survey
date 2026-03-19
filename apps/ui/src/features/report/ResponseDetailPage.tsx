@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, Minus } from 'lucide-react';
 import { useOrderDetail } from '@/features/survey/useOrderDetail';
@@ -34,6 +35,10 @@ export function ResponseDetailPage() {
   const navigate = useNavigate();
   const { data: order, isLoading: orderLoading } = useOrderDetail(orderId!);
   const { data: response, isLoading: responseLoading } = useExistingResponse(orderId!);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
 
   const isLoading = orderLoading || responseLoading;
 

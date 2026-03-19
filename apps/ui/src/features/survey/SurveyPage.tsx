@@ -161,7 +161,7 @@ export function SurveyPage() {
         )}
       </header>
 
-      <main className="px-5 py-4 space-y-6 pb-8">
+      <main className="px-5 py-4 space-y-6 pb-28" style={{ paddingBottom: 'max(7rem, calc(4rem + env(safe-area-inset-bottom)))' }}>
         <div className="bg-surface-card rounded-2xl border border-line p-4">
           <div className="flex justify-between items-center mb-1">
             <span className="text-sm text-txt-muted">{formatTime(order.createdAt)}</span>
@@ -260,13 +260,14 @@ export function SurveyPage() {
 
       {showSkipConfirm && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-6"
+          className="fixed inset-0 z-50 flex items-center justify-center px-6 animate-in fade-in duration-150"
           onClick={() => setShowSkipConfirm(false)}
           style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[300px] rounded-2xl border border-line p-6 text-center shadow-2xl"
+            className="w-full max-w-[300px] rounded-2xl border border-line p-6 text-center shadow-2xl
+                       animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-200 ease-out"
             style={{ backgroundColor: 'var(--bg-card)' }}
           >
             <p className="font-semibold text-txt-primary text-[15px] tracking-tight mb-1">

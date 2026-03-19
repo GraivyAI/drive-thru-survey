@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Star, Minus, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
@@ -42,10 +42,29 @@ const WUA_LABELS: Record<string, string> = {
   NO: 'No',
 };
 
+const SCROLL_KEY = 'report-scroll-y';
+
 export function ReportPage() {
   const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
   const [preset, setPreset] = useState(0);
+  const restoredRef = useRef(false);
+
+  // Restore scroll position when returning from response detail
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    const saved = sessionStorage.getItem(SCROLL_KEY);
+    if (saved) {
+      window.scrollTo({ top: parseInt(saved), behavior: 'instant' });
+    }
+  }, []);
+
+  // Save scroll position when leaving for a response detail
+  const navigateToDetail = (orderId: string) => {
+    sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+    navigate(`/report/response/${orderId}`);
+  };
 
   const today = toDateStr(0);
   const dateFrom = preset === 0 ? today : preset === 1 ? toDateStr(1) : toDateStr(7);
@@ -205,7 +224,7 @@ export function ReportPage() {
               {responses.map((r) => (
                 <button
                   key={r.id}
-                  onClick={() => navigate(`/report/response/${r.orderId}`)}
+                  onClick={() => navigateToDetail(r.orderId)}
                   className="w-full bg-surface-card rounded-xl border border-line p-3 text-left
                              hover:border-txt-muted active:scale-[0.99] transition-all"
                 >
