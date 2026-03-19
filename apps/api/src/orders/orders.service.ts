@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SqlService } from '../common/database/sql.service';
+import { getDayBoundsInUtc, getTodayBoundsInUtc } from '../common/utils/timezone.utils';
 
 export interface OrderSummaryRow {
   id: string;
@@ -21,10 +22,29 @@ export interface OrderSummaryRow {
 export class OrdersService {
   constructor(private readonly sql: SqlService) {}
 
+  private async getLocationTimezone(locationId: string): Promise<string> {
+    const result = await this.sql.query(
+      `SELECT timezone FROM locations WHERE id = $1 LIMIT 1`,
+      [locationId],
+    );
+    return result.rows[0]?.timezone || 'UTC';
+  }
+
   async listForLocationToday(locationId: string, date?: string): Promise<OrderSummaryRow[]> {
-    const targetDate = date || new Date().toISOString().slice(0, 10);
-    const startOfDay = `${targetDate}T00:00:00.000Z`;
-    const endOfDay = `${targetDate}T23:59:59.999Z`;
+    const timezone = await this.getLocationTimezone(locationId);
+
+    let startOfDay: string;
+    let endOfDay: string;
+
+    if (date) {
+      const bounds = getDayBoundsInUtc(date, timezone);
+      startOfDay = bounds.startUtc;
+      endOfDay = bounds.endUtc;
+    } else {
+      const bounds = getTodayBoundsInUtc(timezone);
+      startOfDay = bounds.startUtc;
+      endOfDay = bounds.endUtc;
+    }
 
     const result = await this.sql.query(
       `SELECT

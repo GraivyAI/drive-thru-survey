@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SqlService } from '../common/database/sql.service';
+import { getDayBoundsInUtc } from '../common/utils/timezone.utils';
 
 @Injectable()
 export class SurveyService {
@@ -93,9 +94,18 @@ export class SurveyService {
     return result.rows[0] || null;
   }
 
+  private async getLocationTimezone(locationId: string): Promise<string> {
+    const result = await this.sql.query(
+      `SELECT timezone FROM locations WHERE id = $1 LIMIT 1`,
+      [locationId],
+    );
+    return result.rows[0]?.timezone || 'UTC';
+  }
+
   async getReport(locationId: string, dateFrom: string, dateTo: string) {
-    const startOfDay = `${dateFrom}T00:00:00.000Z`;
-    const endOfDay = `${dateTo}T23:59:59.999Z`;
+    const timezone = await this.getLocationTimezone(locationId);
+    const { startUtc: startOfDay } = getDayBoundsInUtc(dateFrom, timezone);
+    const { endUtc: endOfDay } = getDayBoundsInUtc(dateTo, timezone);
 
     const [summaryResult, responsesResult, totalOrdersResult] = await Promise.all([
       this.sql.query(
@@ -182,8 +192,9 @@ export class SurveyService {
   }
 
   async exportCsv(locationId: string, dateFrom: string, dateTo: string): Promise<string> {
-    const startOfDay = `${dateFrom}T00:00:00.000Z`;
-    const endOfDay = `${dateTo}T23:59:59.999Z`;
+    const timezone = await this.getLocationTimezone(locationId);
+    const { startUtc: startOfDay } = getDayBoundsInUtc(dateFrom, timezone);
+    const { endUtc: endOfDay } = getDayBoundsInUtc(dateTo, timezone);
 
     const result = await this.sql.query(
       `SELECT
