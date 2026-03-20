@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Download, Star, Minus, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { AppHeader } from '@/components/AppHeader';
@@ -7,6 +7,10 @@ import { BottomNav } from '@/components/BottomNav';
 import { useReport } from './useReport';
 import { DistributionBar } from './DistributionBar';
 import { formatTime, formatCurrency } from '@/features/orders/order-utils';
+import {
+  REPORT_RESTORE_PENDING_KEY,
+  REPORT_SCROLL_Y_KEY,
+} from '@/features/report/report-scroll-storage';
 
 const DATE_PRESETS = [
   { label: 'Today', days: 0 },
@@ -42,7 +46,6 @@ const WUA_LABELS: Record<string, string> = {
   NO: 'No',
 };
 
-const SCROLL_KEY = 'report-scroll-y';
 const PRESET_KEY = 'report-date-preset';
 
 function readStoredPreset(): number {
@@ -60,27 +63,37 @@ export function ReportPage() {
   const token = useAuthStore((s) => s.token);
   const locationName = useAuthStore((s) => s.location?.name);
   const navigate = useNavigate();
+  const location = useLocation();
   const [preset, setPreset] = useState(readStoredPreset);
-  const restoredRef = useRef(false);
 
   const selectPreset = (i: number) => {
     sessionStorage.setItem(PRESET_KEY, String(i));
     setPreset(i);
   };
 
-  // Restore scroll position when returning from response detail
+  // Scroll top on tab mount, or restore list position only after report → detail → back
   useEffect(() => {
-    if (restoredRef.current) return;
-    restoredRef.current = true;
-    const saved = sessionStorage.getItem(SCROLL_KEY);
-    if (saved) {
-      window.scrollTo({ top: parseInt(saved), behavior: 'instant' });
+    const pending = sessionStorage.getItem(REPORT_RESTORE_PENDING_KEY);
+    if (pending === '1') {
+      sessionStorage.removeItem(REPORT_RESTORE_PENDING_KEY);
+      const saved = sessionStorage.getItem(REPORT_SCROLL_Y_KEY);
+      if (saved !== null) {
+        const y = parseInt(saved, 10);
+        if (!Number.isNaN(y)) {
+          window.scrollTo({ top: y, behavior: 'instant' });
+        }
+      }
+      sessionStorage.removeItem(REPORT_SCROLL_Y_KEY);
+      return;
     }
-  }, []);
+    sessionStorage.removeItem(REPORT_SCROLL_Y_KEY);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [location.key]);
 
-  // Save scroll + preset when leaving for a response detail (preset also persisted on every selectPreset)
+  // Save scroll + preset when opening a response from the list
   const navigateToDetail = (orderId: string) => {
-    sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+    sessionStorage.setItem(REPORT_SCROLL_Y_KEY, String(window.scrollY));
+    sessionStorage.setItem(REPORT_RESTORE_PENDING_KEY, '1');
     sessionStorage.setItem(PRESET_KEY, String(preset));
     navigate(`/report/response/${orderId}`);
   };
@@ -125,14 +138,9 @@ export function ReportPage() {
       />
 
       <main className="px-4 py-4 space-y-4">
-        <div className="-mt-1 mb-1 space-y-1">
-          <p className="text-[11px] font-semibold text-txt-muted uppercase tracking-[0.2em]">
-            Report
-          </p>
-          {locationName ? (
-            <p className="text-[12px] text-txt-secondary font-medium truncate">{locationName}</p>
-          ) : null}
-        </div>
+        {locationName ? (
+          <p className="-mt-1 text-[12px] font-medium text-txt-secondary truncate">{locationName}</p>
+        ) : null}
         <div className="flex gap-2">
           {DATE_PRESETS.map((p, i) => (
             <button

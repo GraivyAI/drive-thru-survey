@@ -1,6 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ClipboardList, BarChart3, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  REPORT_RESTORE_PENDING_KEY,
+  REPORT_SCROLL_Y_KEY,
+} from '@/features/report/report-scroll-storage';
 
 const tabs = [
   { path: '/orders', label: 'Orders', icon: ClipboardList },
@@ -23,7 +27,12 @@ export function BottomNav() {
           return (
             <button
               key={tab.path}
-              onClick={() => navigate(tab.path)}
+              onClick={() => {
+                sessionStorage.removeItem(REPORT_RESTORE_PENDING_KEY);
+                sessionStorage.removeItem(REPORT_SCROLL_Y_KEY);
+                navigate(tab.path);
+                window.scrollTo({ top: 0, behavior: 'instant' });
+              }}
               className={cn(
                 'flex-1 flex flex-col items-center gap-1 py-3 text-[10px] font-medium tracking-wide uppercase transition-colors',
                 active ? 'text-txt-primary' : 'text-txt-muted',
