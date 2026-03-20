@@ -12,6 +12,7 @@ import { OrderDetail } from './OrderDetail';
 import { SatisfactionRating } from './SatisfactionRating';
 import { OptionGroup } from './OptionGroup';
 import { formatItemPreview, formatTime, formatCurrency } from '@/features/orders/order-utils';
+import { BottomNav } from '@/components/BottomNav';
 
 const Q2_OPTIONS = [
   { value: 'YES_COMPLETELY', label: 'Yes, completely' },
@@ -127,17 +128,25 @@ export function SurveyPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-dvh bg-surface-page flex items-center justify-center">
-        <div className="w-5 h-5 border-2 rounded-full animate-spin"
-          style={{ borderColor: 'var(--text-faint)', borderTopColor: 'var(--text-primary)' }} />
+      <div className="min-h-dvh bg-surface-page pb-20">
+        <div className="flex min-h-[50dvh] items-center justify-center">
+          <div
+            className="h-5 w-5 animate-spin rounded-full border-2"
+            style={{ borderColor: 'var(--text-faint)', borderTopColor: 'var(--text-primary)' }}
+          />
+        </div>
+        <BottomNav />
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div className="min-h-dvh bg-surface-page flex items-center justify-center">
-        <p className="text-txt-secondary text-sm">Order not found</p>
+      <div className="min-h-dvh bg-surface-page pb-20">
+        <div className="flex min-h-[50dvh] items-center justify-center px-6">
+          <p className="text-center text-sm text-txt-secondary">Order not found</p>
+        </div>
+        <BottomNav />
       </div>
     );
   }
@@ -145,7 +154,7 @@ export function SurveyPage() {
   const orderNumber = order.orderData?.orderNumber || order.id?.slice(0, 8);
 
   return (
-    <div className="min-h-dvh bg-surface-page">
+    <div className="min-h-dvh bg-surface-page pb-20">
       <header
         className="sticky top-0 z-40 border-b border-line backdrop-blur-xl pt-[env(safe-area-inset-top,0px)]"
         style={{ backgroundColor: 'var(--bg-header)' }}
@@ -167,7 +176,7 @@ export function SurveyPage() {
         </div>
       </header>
 
-      <main className="px-5 py-4 space-y-6 pb-28" style={{ paddingBottom: 'max(7rem, calc(4rem + env(safe-area-inset-bottom)))' }}>
+      <main className="space-y-6 px-5 py-4 pb-8">
         <div className="bg-surface-card rounded-2xl border border-line p-4">
           <div className="flex justify-between items-center mb-1">
             <span className="text-sm text-txt-muted">{formatTime(order.createdAt)}</span>
@@ -264,9 +273,11 @@ export function SurveyPage() {
         </button>
       </main>
 
+      <BottomNav />
+
       {showSkipConfirm && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-6 animate-in fade-in duration-150"
+          className="fixed inset-0 z-[60] flex items-center justify-center px-6 animate-in fade-in duration-150"
           onClick={() => setShowSkipConfirm(false)}
           style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
         >

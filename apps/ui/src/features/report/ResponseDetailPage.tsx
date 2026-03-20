@@ -5,6 +5,7 @@ import { useOrderDetail } from '@/features/survey/useOrderDetail';
 import { useExistingResponse } from '@/features/survey/useExistingResponse';
 import { OrderDetail } from '@/features/survey/OrderDetail';
 import { formatTime, formatCurrency } from '@/features/orders/order-utils';
+import { BottomNav } from '@/components/BottomNav';
 
 const ETU_LABELS: Record<string, string> = {
   YES_COMPLETELY: 'Yes, completely',
@@ -44,17 +45,25 @@ export function ResponseDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-dvh bg-surface-page flex items-center justify-center">
-        <div className="w-5 h-5 border-2 rounded-full animate-spin"
-          style={{ borderColor: 'var(--text-faint)', borderTopColor: 'var(--text-primary)' }} />
+      <div className="min-h-dvh bg-surface-page pb-20">
+        <div className="flex min-h-[50dvh] items-center justify-center">
+          <div
+            className="h-5 w-5 animate-spin rounded-full border-2"
+            style={{ borderColor: 'var(--text-faint)', borderTopColor: 'var(--text-primary)' }}
+          />
+        </div>
+        <BottomNav />
       </div>
     );
   }
 
   if (!order || !response) {
     return (
-      <div className="min-h-dvh bg-surface-page flex items-center justify-center">
-        <p className="text-txt-secondary text-sm">Response not found</p>
+      <div className="min-h-dvh bg-surface-page pb-20">
+        <div className="flex min-h-[50dvh] items-center justify-center px-6">
+          <p className="text-center text-sm text-txt-secondary">Response not found</p>
+        </div>
+        <BottomNav />
       </div>
     );
   }
@@ -63,7 +72,7 @@ export function ResponseDetailPage() {
   const isSkipped = response.status === 'SKIPPED';
 
   return (
-    <div className="min-h-dvh bg-surface-page pb-10">
+    <div className="min-h-dvh bg-surface-page pb-20">
       <header
         className="sticky top-0 z-40 border-b border-line backdrop-blur-xl pt-[env(safe-area-inset-top,0px)]"
         style={{ backgroundColor: 'var(--bg-header)' }}
@@ -152,6 +161,8 @@ export function ResponseDetailPage() {
           )}
         </div>
       </main>
+
+      <BottomNav />
     </div>
   );
 }
