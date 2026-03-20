@@ -1,10 +1,11 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ClipboardList, BarChart3 } from 'lucide-react';
+import { ClipboardList, BarChart3, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const tabs = [
   { path: '/orders', label: 'Orders', icon: ClipboardList },
   { path: '/report', label: 'Report', icon: BarChart3 },
+  { path: '/more', label: 'More', icon: MoreHorizontal },
 ] as const;
 
 export function BottomNav() {

@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { RefreshCw, Inbox } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
 import { BottomNav } from '@/components/BottomNav';
+import { useAuthStore } from '@/stores/authStore';
 import { useOrders } from './useOrders';
 import { OrderCard } from './OrderCard';
 
 export function OrdersPage() {
+  const locationName = useAuthStore((s) => s.location?.name);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
@@ -18,8 +20,6 @@ export function OrdersPage() {
   return (
     <div className="min-h-screen bg-surface-page pb-20 overflow-x-hidden">
       <AppHeader
-        subtitle={`${today} \u00B7 ${surveyedCount} of ${totalCount} surveyed`}
-        lastUpdated={dataUpdatedAt ? new Date(dataUpdatedAt) : null}
         right={
           <button onClick={() => refetch()} disabled={isFetching}
             className="p-2 rounded-lg text-txt-muted hover:text-txt-primary transition-colors">
@@ -28,6 +28,36 @@ export function OrdersPage() {
         }
       />
       <main className="px-4 py-3 space-y-2">
+        <div className="flex flex-col gap-1 pb-2 -mt-1 border-b border-line mb-1">
+          {locationName ? (
+            <p className="text-[13px] font-semibold text-txt-primary tracking-tight truncate">
+              {locationName}
+            </p>
+          ) : null}
+          <p className="text-[11px] text-txt-muted tracking-wide">
+            {today}
+            {isLoading && <span className="text-txt-faint"> · Loading…</span>}
+            {!isLoading && !isError && (
+              <>
+                <span className="text-txt-faint mx-1.5">·</span>
+                <span className="text-txt-secondary font-medium">
+                  {surveyedCount} of {totalCount} surveyed
+                </span>
+              </>
+            )}
+          </p>
+          {!isLoading && !isError && dataUpdatedAt ? (
+            <p className="text-[10px] text-txt-muted tabular-nums tracking-wide">
+              Last updated{' '}
+              {new Date(dataUpdatedAt).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true,
+              })}
+            </p>
+          ) : null}
+        </div>
         {isLoading && [1, 2, 3].map((i) => (
           <div key={i} className="h-[88px] bg-surface-card rounded-2xl border border-line animate-pulse" />
         ))}

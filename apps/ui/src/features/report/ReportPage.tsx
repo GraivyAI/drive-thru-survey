@@ -43,12 +43,30 @@ const WUA_LABELS: Record<string, string> = {
 };
 
 const SCROLL_KEY = 'report-scroll-y';
+const PRESET_KEY = 'report-date-preset';
+
+function readStoredPreset(): number {
+  try {
+    const s = sessionStorage.getItem(PRESET_KEY);
+    if (s === null) return 0;
+    const n = parseInt(s, 10);
+    return n >= 0 && n < DATE_PRESETS.length ? n : 0;
+  } catch {
+    return 0;
+  }
+}
 
 export function ReportPage() {
   const token = useAuthStore((s) => s.token);
+  const locationName = useAuthStore((s) => s.location?.name);
   const navigate = useNavigate();
-  const [preset, setPreset] = useState(0);
+  const [preset, setPreset] = useState(readStoredPreset);
   const restoredRef = useRef(false);
+
+  const selectPreset = (i: number) => {
+    sessionStorage.setItem(PRESET_KEY, String(i));
+    setPreset(i);
+  };
 
   // Restore scroll position when returning from response detail
   useEffect(() => {
@@ -60,9 +78,10 @@ export function ReportPage() {
     }
   }, []);
 
-  // Save scroll position when leaving for a response detail
+  // Save scroll + preset when leaving for a response detail (preset also persisted on every selectPreset)
   const navigateToDetail = (orderId: string) => {
     sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+    sessionStorage.setItem(PRESET_KEY, String(preset));
     navigate(`/report/response/${orderId}`);
   };
 
@@ -94,7 +113,6 @@ export function ReportPage() {
   return (
     <div className="min-h-screen bg-surface-page pb-20">
       <AppHeader
-        subtitle="Report"
         right={
           <button
             onClick={handleExport}
@@ -107,11 +125,19 @@ export function ReportPage() {
       />
 
       <main className="px-4 py-4 space-y-4">
+        <div className="-mt-1 mb-1 space-y-1">
+          <p className="text-[11px] font-semibold text-txt-muted uppercase tracking-[0.2em]">
+            Report
+          </p>
+          {locationName ? (
+            <p className="text-[12px] text-txt-secondary font-medium truncate">{locationName}</p>
+          ) : null}
+        </div>
         <div className="flex gap-2">
           {DATE_PRESETS.map((p, i) => (
             <button
               key={p.label}
-              onClick={() => setPreset(i)}
+              onClick={() => selectPreset(i)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 preset !== i ? 'bg-surface-card text-txt-secondary border border-line' : ''
               }`}
@@ -132,19 +158,23 @@ export function ReportPage() {
 
         {summary && (
           <>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-surface-card rounded-xl border border-line p-4">
-                <p className="text-xs text-txt-muted font-medium mb-1">Responses</p>
-                <p className="text-2xl font-bold text-txt-primary">
-                  {summary.totalResponses}
-                  <span className="text-sm font-normal text-txt-muted"> / {summary.totalOrders}</span>
-                </p>
-                <p className="text-sm text-graivy-green font-medium">{Math.round(summary.responseRate * 100)}%</p>
-              </div>
+            <p className="text-xs text-txt-muted text-center -mb-1">
+              <span className="font-semibold text-txt-secondary tabular-nums">{summary.totalResponses}</span>
+              <span> of </span>
+              <span className="font-semibold text-txt-secondary tabular-nums">{summary.totalOrders}</span>
+              <span> orders had a survey outcome</span>
+              <span className="text-txt-faint mx-1">·</span>
+              <span className="text-graivy-green font-medium tabular-nums">
+                {Math.round(summary.responseRate * 100)}%
+              </span>
+              <span className="text-txt-faint"> engaged</span>
+            </p>
+            <div className="grid grid-cols-2 gap-3">
               <div className="bg-surface-card rounded-xl border border-line p-4">
                 <p className="text-xs text-txt-muted font-medium mb-1">Completed</p>
                 <p className="text-2xl font-bold text-txt-primary">{summary.totalCompleted}</p>
                 <p className="text-sm text-emerald-500 font-medium">{Math.round(summary.completionRate * 100)}%</p>
+                <p className="text-[10px] text-txt-muted mt-1">of orders</p>
               </div>
               <div className="bg-surface-card rounded-xl border border-line p-4">
                 <p className="text-xs text-txt-muted font-medium mb-1">Skipped</p>
@@ -152,6 +182,7 @@ export function ReportPage() {
                 <p className="text-sm text-amber-500 font-medium">
                   {summary.totalOrders > 0 ? Math.round((summary.totalSkipped / summary.totalOrders) * 100) : 0}%
                 </p>
+                <p className="text-[10px] text-txt-muted mt-1">of orders</p>
               </div>
             </div>
 
@@ -218,7 +249,7 @@ export function ReportPage() {
         {responses.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-txt-secondary mb-2">
-              Individual Responses ({responses.length})
+              By order ({responses.length})
             </h3>
             <div className="space-y-2">
               {responses.map((r) => (

@@ -7,6 +7,7 @@ import { OrdersPage } from '@/features/orders/OrdersPage';
 import { SurveyPage } from '@/features/survey/SurveyPage';
 import { ReportPage } from '@/features/report/ReportPage';
 import { ResponseDetailPage } from '@/features/report/ResponseDetailPage';
+import { MorePage } from '@/features/more/MorePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +58,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <ResponseDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/more"
+          element={
+            <ProtectedRoute>
+              <MorePage />
             </ProtectedRoute>
           }
         />

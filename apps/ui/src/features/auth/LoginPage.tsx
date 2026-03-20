@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { GraivyLogo } from '@/components/GraivyLogo';
+import { ByGraivyLogo } from '@/components/ByGraivyLogo';
+import { GuestMarkLogo } from '@/components/GuestMarkLogo';
 import { cn } from '@/lib/utils';
 
 export function LoginPage() {
@@ -63,19 +64,23 @@ export function LoginPage() {
   const filled = code.every((c) => c.length === 1);
 
   return (
-    <div className="flex flex-col items-center justify-center px-6"
-      style={{ backgroundColor: 'var(--bg-page)', minHeight: '100dvh' }}>
-      <div className="w-full max-w-[280px] text-center -mt-12">
-        <div className="flex justify-center mb-4">
-          <GraivyLogo className="h-8 w-auto" />
+    <div
+      className="flex flex-col px-6"
+      style={{ backgroundColor: 'var(--bg-page)', minHeight: '100dvh' }}
+    >
+      <div className="flex flex-1 flex-col items-center justify-center">
+        <div className="w-full max-w-[min(300px,92vw)] text-center -mt-8">
+        <div className="mb-8 flex flex-col items-center gap-2 px-1">
+          <GuestMarkLogo className="h-11 w-auto max-w-full" />
+          <ByGraivyLogo className="h-5 w-auto max-w-[min(168px,82vw)]" />
         </div>
-        <div className="mb-10 text-[10px] font-semibold tracking-[0.2em] text-txt-muted uppercase">
-          Drive-Thru Survey
+        <div className="mb-12 text-[10px] font-semibold tracking-[0.2em] text-txt-muted uppercase">
+          Drive thru guest survey
         </div>
 
         <div
           className={cn(
-            'flex justify-center gap-3 mb-3 transition-transform',
+            'flex justify-center gap-3 mb-4 transition-transform',
             shake && 'animate-[shake_0.4s_ease-in-out]',
           )}
         >
@@ -108,7 +113,7 @@ export function LoginPage() {
           ))}
         </div>
 
-        <p className="text-[11px] text-txt-muted mb-8 tracking-wide">
+        <p className="text-[11px] text-txt-muted mb-9 tracking-wide">
           Enter your lane code
         </p>
 
@@ -129,6 +134,7 @@ export function LoginPage() {
             'Continue'
           )}
         </button>
+        </div>
       </div>
     </div>
   );
