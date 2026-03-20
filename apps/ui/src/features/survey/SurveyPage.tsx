@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -42,6 +42,30 @@ export function SurveyPage() {
   const [expanded, setExpanded] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+
+  const q2SectionRef = useRef<HTMLDivElement>(null);
+  const q3SectionRef = useRef<HTMLDivElement>(null);
+  const submitSectionRef = useRef<HTMLDivElement>(null);
+
+  const scrollSectionIntoView = (el: HTMLElement | null) => {
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleSatisfactionChange = (n: number) => {
+    setSatisfaction(n);
+    requestAnimationFrame(() => scrollSectionIntoView(q2SectionRef.current));
+  };
+
+  const handleEasyToUnderstandChange = (v: string) => {
+    setEasyToUnderstand(v);
+    requestAnimationFrame(() => scrollSectionIntoView(q3SectionRef.current));
+  };
+
+  const handleWouldUseAgainChange = (v: string) => {
+    setWouldUseAgain(v);
+    requestAnimationFrame(() => scrollSectionIntoView(submitSectionRef.current));
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -211,45 +235,55 @@ export function SurveyPage() {
               <h3 className="font-semibold text-txt-primary text-[15px] mb-3 tracking-tight">
                 How satisfied were you with your ordering experience today?
               </h3>
-              <SatisfactionRating value={satisfaction} onChange={setSatisfaction} />
+              <SatisfactionRating value={satisfaction} onChange={handleSatisfactionChange} />
               <div className="flex justify-between mt-1.5 text-[10px] text-txt-muted px-1 tracking-wide uppercase">
                 <span>Poor</span><span>Excellent</span>
               </div>
             </div>
 
-            <div>
+            <div ref={q2SectionRef} className="scroll-mt-28">
               <h3 className="font-semibold text-txt-primary text-[15px] mb-3 tracking-tight">
                 Was the order taker easy to understand?
               </h3>
-              <OptionGroup options={Q2_OPTIONS} value={easyToUnderstand} onChange={setEasyToUnderstand} />
+              <OptionGroup
+                options={Q2_OPTIONS}
+                value={easyToUnderstand}
+                onChange={handleEasyToUnderstandChange}
+              />
             </div>
 
-            <div>
+            <div ref={q3SectionRef} className="scroll-mt-28">
               <h3 className="font-semibold text-txt-primary text-[15px] mb-3 tracking-tight">
                 Would you use this experience again?
               </h3>
-              <OptionGroup options={Q3_OPTIONS} value={wouldUseAgain} onChange={setWouldUseAgain} />
+              <OptionGroup
+                options={Q3_OPTIONS}
+                value={wouldUseAgain}
+                onChange={handleWouldUseAgainChange}
+              />
             </div>
 
-            <button
-              onClick={handleSubmit}
-              disabled={!canSubmit || submitMutation.isPending}
-              className="w-full py-3.5 font-medium rounded-2xl text-[15px] tracking-tight
-                         disabled:opacity-30 disabled:cursor-not-allowed
-                         hover:opacity-90 active:scale-[0.98] transition-all"
-              style={{ backgroundColor: 'var(--graivy-btn-bg)', color: 'var(--graivy-btn-text)' }}
-            >
-              {submitMutation.isPending ? (
-                <span className="inline-flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 border-2 border-current/20 border-t-current rounded-full animate-spin" />
-                  Saving
-                </span>
-              ) : isEditing ? (
-                'Update Survey'
-              ) : (
-                'Submit Survey'
-              )}
-            </button>
+            <div ref={submitSectionRef} className="scroll-mt-28">
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit || submitMutation.isPending}
+                className="w-full py-3.5 font-medium rounded-2xl text-[15px] tracking-tight
+                           disabled:opacity-30 disabled:cursor-not-allowed
+                           hover:opacity-90 active:scale-[0.98] transition-all"
+                style={{ backgroundColor: 'var(--graivy-btn-bg)', color: 'var(--graivy-btn-text)' }}
+              >
+                {submitMutation.isPending ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="w-3.5 h-3.5 border-2 border-current/20 border-t-current rounded-full animate-spin" />
+                    Saving
+                  </span>
+                ) : isEditing ? (
+                  'Update Survey'
+                ) : (
+                  'Submit Survey'
+                )}
+              </button>
+            </div>
           </>
         )}
 
