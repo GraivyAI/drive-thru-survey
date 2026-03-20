@@ -70,9 +70,9 @@ export function LoginPage() {
     >
       <div className="flex flex-1 flex-col items-center justify-center">
         <div className="w-full max-w-[min(300px,92vw)] text-center -mt-8">
-        <div className="mb-8 flex flex-col items-center gap-2 px-1">
+        <div className="mb-8 flex flex-col items-center gap-3 px-1">
           <GuestMarkLogo className="h-11 w-auto max-w-full" />
-          <ByGraivyLogo className="h-5 w-auto max-w-[min(168px,82vw)]" />
+          <ByGraivyLogo className="h-5 w-auto max-w-[min(152px,78vw)]" />
         </div>
         <div className="mb-12 text-[10px] font-semibold tracking-[0.2em] text-txt-muted uppercase">
           Drive thru guest survey
