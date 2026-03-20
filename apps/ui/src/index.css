@@ -35,12 +35,15 @@
     --graivy-btn-text: #0e1a14;
   }
 
-  html, body {
-    overflow-x: hidden;
-    width: 100%;
+  html {
+    height: 100%;
   }
 
   body {
+    margin: 0;
+    min-height: 100%;
+    min-height: 100dvh;
+    width: 100%;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -48,5 +51,12 @@
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
     letter-spacing: -0.01em;
+    overscroll-behavior-y: contain;
+  }
+
+  #root {
+    min-height: 100dvh;
+    width: 100%;
+    overflow-x: clip;
   }
 }

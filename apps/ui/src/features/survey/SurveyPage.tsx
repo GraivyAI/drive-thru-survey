@@ -127,7 +127,7 @@ export function SurveyPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-surface-page flex items-center justify-center">
+      <div className="min-h-dvh bg-surface-page flex items-center justify-center">
         <div className="w-5 h-5 border-2 rounded-full animate-spin"
           style={{ borderColor: 'var(--text-faint)', borderTopColor: 'var(--text-primary)' }} />
       </div>
@@ -136,7 +136,7 @@ export function SurveyPage() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-surface-page flex items-center justify-center">
+      <div className="min-h-dvh bg-surface-page flex items-center justify-center">
         <p className="text-txt-secondary text-sm">Order not found</p>
       </div>
     );
@@ -145,20 +145,26 @@ export function SurveyPage() {
   const orderNumber = order.orderData?.orderNumber || order.id?.slice(0, 8);
 
   return (
-    <div className="min-h-screen bg-surface-page">
-      <header className="sticky top-0 z-40 backdrop-blur-xl border-b border-line px-5 py-3 flex items-center gap-3"
-        style={{ backgroundColor: 'var(--bg-header)' }}>
-        <button onClick={() => navigate('/orders')} className="p-1 text-txt-muted">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <span className="font-semibold text-txt-primary tracking-tight">{orderNumber}</span>
-        {isEditing && (
-          <span className={`text-[10px] font-semibold uppercase tracking-wider ml-auto ${
-            isSkipped ? 'text-amber-500' : 'text-txt-muted'
-          }`}>
-            {isSkipped ? 'Skipped' : 'Editing'}
-          </span>
-        )}
+    <div className="min-h-dvh bg-surface-page">
+      <header
+        className="sticky top-0 z-40 border-b border-line backdrop-blur-xl pt-[env(safe-area-inset-top,0px)]"
+        style={{ backgroundColor: 'var(--bg-header)' }}
+      >
+        <div className="flex items-center gap-3 px-5 py-3">
+          <button type="button" onClick={() => navigate('/orders')} className="p-1 text-txt-muted">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <span className="font-semibold text-txt-primary tracking-tight">{orderNumber}</span>
+          {isEditing && (
+            <span
+              className={`ml-auto text-[10px] font-semibold uppercase tracking-wider ${
+                isSkipped ? 'text-amber-500' : 'text-txt-muted'
+              }`}
+            >
+              {isSkipped ? 'Skipped' : 'Editing'}
+            </span>
+          )}
+        </div>
       </header>
 
       <main className="px-5 py-4 space-y-6 pb-28" style={{ paddingBottom: 'max(7rem, calc(4rem + env(safe-area-inset-bottom)))' }}>

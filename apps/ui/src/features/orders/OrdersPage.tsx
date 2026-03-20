@@ -18,7 +18,7 @@ export function OrdersPage() {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-surface-page pb-20 overflow-x-hidden">
+    <div className="min-h-dvh bg-surface-page pb-20">
       <AppHeader
         right={
           <button onClick={() => refetch()} disabled={isFetching}

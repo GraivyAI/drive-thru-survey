@@ -23,10 +23,7 @@ function AppRoutes() {
   const location = useLocation();
 
   return (
-    <div
-      key={location.pathname}
-      className="animate-in fade-in slide-in-from-bottom-3 duration-200 ease-out"
-    >
+    <div key={location.pathname}>
       <Routes location={location}>
         <Route path="/login" element={<LoginPage />} />
         <Route

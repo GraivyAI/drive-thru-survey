@@ -13,8 +13,10 @@ export function BottomNav() {
   const navigate = useNavigate();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-line z-50"
-      style={{ backgroundColor: 'var(--bg-nav)' }}>
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-line backdrop-blur-xl pb-[env(safe-area-inset-bottom,0px)]"
+      style={{ backgroundColor: 'var(--bg-nav)' }}
+    >
       <div className="flex">
         {tabs.map((tab) => {
           const active = pathname.startsWith(tab.path);

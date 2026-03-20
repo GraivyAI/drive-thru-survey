@@ -111,7 +111,7 @@ export function ReportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-page pb-20">
+    <div className="min-h-dvh bg-surface-page pb-20">
       <AppHeader
         right={
           <button
