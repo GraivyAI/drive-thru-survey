@@ -7,6 +7,12 @@ import { LogoutConfirmDialog } from '@/components/LogoutConfirmDialog';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeStore } from '@/stores/themeStore';
+import { useLocationDetails, type LocationDetails } from '@/features/more/useLocationDetails';
+
+function formatStoreAddress(d: LocationDetails): string {
+  const line1 = [d.address, d.address2].filter(Boolean).join(', ');
+  return [line1, `${d.city}, ${d.state} ${d.postalCode}`].filter(Boolean).join('\n');
+}
 
 export function MorePage() {
   const navigate = useNavigate();
@@ -15,6 +21,11 @@ export function MorePage() {
   const lane = useAuthStore((s) => s.lane);
   const theme = useThemeStore((s) => s.theme);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const {
+    data: storeDetails,
+    isPending: storeDetailsLoading,
+    isError: storeDetailsError,
+  } = useLocationDetails(location?.id);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -47,11 +58,19 @@ export function MorePage() {
                   Location
                 </p>
                 <p className="mt-1 text-[15px] font-semibold leading-snug tracking-tight text-txt-primary">
-                  {location.name}
+                  {storeDetails?.name ?? location.name}
                 </p>
-                {location.code ? (
+                {storeDetails && !storeDetails.isActive ? (
+                  <p className="mt-1 text-[11px] font-medium text-amber-600 dark:text-amber-500">
+                    This store is marked inactive in the system.
+                  </p>
+                ) : null}
+                {(storeDetails?.code ?? location.code) ? (
                   <p className="mt-1.5 text-[11px] text-txt-muted">
-                    Store code <span className="font-medium text-txt-secondary">{location.code}</span>
+                    Store code{' '}
+                    <span className="font-medium text-txt-secondary">
+                      {storeDetails?.code ?? location.code}
+                    </span>
                   </p>
                 ) : null}
                 {lane ? (
@@ -62,6 +81,44 @@ export function MorePage() {
                       <span className="text-txt-faint"> · {lane.name}</span>
                     ) : null}
                   </p>
+                ) : null}
+                {storeDetailsLoading ? (
+                  <p className="mt-2 text-[11px] text-txt-faint">Loading store details…</p>
+                ) : null}
+                {storeDetailsError ? (
+                  <p className="mt-2 text-[11px] text-txt-muted">Couldn’t load full store details.</p>
+                ) : null}
+                {storeDetails ? (
+                  <div className="mt-2 space-y-2 border-t border-line pt-2">
+                    {storeDetails.description ? (
+                      <p className="text-[12px] leading-snug text-txt-secondary">{storeDetails.description}</p>
+                    ) : null}
+                    <p className="whitespace-pre-line text-[12px] leading-snug text-txt-secondary">
+                      {formatStoreAddress(storeDetails)}
+                    </p>
+                    <div className="flex flex-col gap-1 text-[11px] text-txt-muted">
+                      {storeDetails.phone ? (
+                        <a
+                          href={`tel:${storeDetails.phone.replace(/\s/g, '')}`}
+                          className="font-medium text-graivy-green hover:underline"
+                        >
+                          {storeDetails.phone}
+                        </a>
+                      ) : null}
+                      {storeDetails.email ? (
+                        <a
+                          href={`mailto:${storeDetails.email}`}
+                          className="break-all font-medium text-graivy-green hover:underline"
+                        >
+                          {storeDetails.email}
+                        </a>
+                      ) : null}
+                      <p>
+                        Timezone{' '}
+                        <span className="font-medium text-txt-secondary">{storeDetails.timezone}</span>
+                      </p>
+                    </div>
+                  </div>
                 ) : null}
               </div>
             </div>

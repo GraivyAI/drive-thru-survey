@@ -9,6 +9,24 @@ export interface JwtPayload {
   shortCode: string;
 }
 
+/** Public store row for staff UI (excludes payment/POS config JSON). */
+export interface LocationDetails {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  address: string;
+  address2: string | null;
+  city: string;
+  state: string;
+  postalCode: string;
+  phone: string | null;
+  email: string | null;
+  isActive: boolean;
+  timezone: string;
+  utcOffset: number;
+}
+
 export interface LoginResult {
   token: string;
   location: { id: string; name: string; code: string };
@@ -75,5 +93,35 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid or expired token');
     }
+  }
+
+  async getLocationDetails(locationId: string): Promise<LocationDetails | null> {
+    const result = await this.sql.query(
+      `SELECT
+         id::text AS id,
+         name,
+         code,
+         description,
+         address,
+         "address2" AS "address2",
+         city,
+         state,
+         "postalCode" AS "postalCode",
+         phone,
+         email,
+         "isActive" AS "isActive",
+         timezone,
+         "utcOffset" AS "utcOffset"
+       FROM locations
+       WHERE id = $1
+       LIMIT 1`,
+      [locationId],
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    return result.rows[0] as LocationDetails;
   }
 }
